@@ -1,3 +1,13 @@
+//! Basic use:
+//! 
+//! ```rust
+//! use wincase::Casefold;
+//! let to_upper = Casefold::new();
+//! for unit in "Hello!".encode_utf16() {
+//!     println!("{}", to_upper.get(unit));
+//! }
+//! ```
+
 use std::collections::BTreeMap;
 
 static CASE_FOLDING: &str = include_str!("../ucd/5.1.0/CaseFolding.txt");
@@ -27,6 +37,21 @@ const ADJUSTMENTS: &[(u16, u16)] = &[
 
 type Map = BTreeMap<u16, u16>;
 
+pub struct Casefold {
+	map: Map
+}
+
+impl Casefold {
+	pub fn new() -> Self {
+		Self { map: gen_mappings() }
+	}
+	pub fn get(&self, unit: u16) -> u16 {
+		*self.map.get(&unit).unwrap_or(&unit)
+	}
+	pub fn into_map(self) -> Map {
+		self.map
+	}
+}
 /// Generate mappings from Unicode 5.1.0 CaseFolding data.
 /// This applies only to UTF-16 code units and has aditional adjustments
 /// on top of the Unicode data. If the UTF-16 code unit does not appear in this
