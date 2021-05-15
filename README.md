@@ -1,4 +1,4 @@
-# Windows Caseless Compare
+# Windows Casefolding
 
 Windows uses a case-insensitive algorithm to compare some kinds of strings (e.g. environment variables and paths).
 This algorithm is "interesting". It iterates by UTF-16 code units (not code points) comparing the binary values of each. Where it gets interesting is that it first "upper" cases the code units but in a weird way. It does so by doing the reverse of normal Unicode case-folding. This does not make much sense to me but I'd assume it's for historic reasons.
