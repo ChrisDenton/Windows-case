@@ -1,3 +1,18 @@
+# Experimental Branch
+
+This branch contains a program that detects the casefolding used by your version of Windows. It tries to work out which version of Unicode the casefolding is based on and what changes (aka "fixups") they've made to it.
+
+NOTE: While Windows uses Unicode casefolding data, the casefolding algorithm it uses significantly differs from the spec.
+
+## Building and Running (Windows only)
+
+```
+git clone https://github.com/ChrisDenton/Windows-case.git
+cd Windows-case
+git checkout experimental
+cargo run
+```
+
 # Windows Casefolding
 
 Windows uses a case-insensitive algorithm to compare some kinds of strings (e.g. environment variables and paths).
