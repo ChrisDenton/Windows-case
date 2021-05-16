@@ -9,6 +9,7 @@
 //! ```
 
 use std::collections::BTreeMap;
+use std::cmp::Ordering;
 
 static CASE_FOLDING: &str = include_str!("../ucd/5.1.0/CaseFolding.txt");
 
@@ -36,6 +37,18 @@ const ADJUSTMENTS: &[(u16, u16)] = &[
 ];
 
 type Map = BTreeMap<u16, u16>;
+
+pub fn compare_str(a: &str, b: &str) -> Ordering {
+	let map = Casefold::new();
+	for (a, b) in a.encode_utf16().zip(b.encode_utf16()) {
+		let (a, b) = (map.get(a), map.get(b));
+		match a.cmp(&b) {
+			Ordering::Equal => {}
+			non_eq => return non_eq,
+		}
+	}
+	a.len().cmp(&b.len())
+}
 
 pub struct Casefold {
 	map: Map
