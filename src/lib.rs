@@ -1,16 +1,48 @@
 //! Basic use:
 //! 
 //! ```rust
-//! use wincase::Casefold;
-//! let to_upper = Casefold::new();
-//! for unit in "Hello!".encode_utf16() {
-//!     println!("{}", to_upper.get(unit));
-//! }
+//! use std::cmp::Ordering;
+//!
+//! assert_eq!(wincase::compare_str("Hello", "HeLlo"), Ordering::Equal);
 //! ```
 
 use std::collections::BTreeMap;
 use std::cmp::Ordering;
 
+type Map = BTreeMap<u16, u16>;
+
+// The algorithm uses the casefolding data ultimately generated from `gen_mappings`, below.
+pub fn compare_str(a: &str, b: &str) -> Ordering {
+	let map = Casefold::new();
+	for (a, b) in a.encode_utf16().zip(b.encode_utf16()) {
+		let (a, b) = (map.get(a), map.get(b));
+		match a.cmp(&b) {
+			Ordering::Equal => {}
+			non_eq => return non_eq,
+		}
+	}
+	a.len().cmp(&b.len())
+}
+
+/// A wrapper the mapping.
+pub struct Casefold {
+	map: Map
+}
+
+impl Casefold {
+	pub fn new() -> Self {
+		Self { map: gen_mappings() }
+	}
+	/// Looks up the case mapping.
+	pub fn get(&self, unit: u16) -> u16 {
+		*self.map.get(&unit).unwrap_or(&unit)
+	}
+	pub fn into_map(self) -> Map {
+		self.map
+	}
+}
+
+// The Unicode 5.1.0 `CaseFolding.txt` data file.
 static CASE_FOLDING: &str = include_str!("../ucd/5.1.0/CaseFolding.txt");
 
 // Manual adjustments needed to match Windows.
@@ -36,35 +68,6 @@ const ADJUSTMENTS: &[(u16, u16)] = &[
 	(0x1e61, 0x1e60),
 ];
 
-type Map = BTreeMap<u16, u16>;
-
-pub fn compare_str(a: &str, b: &str) -> Ordering {
-	let map = Casefold::new();
-	for (a, b) in a.encode_utf16().zip(b.encode_utf16()) {
-		let (a, b) = (map.get(a), map.get(b));
-		match a.cmp(&b) {
-			Ordering::Equal => {}
-			non_eq => return non_eq,
-		}
-	}
-	a.len().cmp(&b.len())
-}
-
-pub struct Casefold {
-	map: Map
-}
-
-impl Casefold {
-	pub fn new() -> Self {
-		Self { map: gen_mappings() }
-	}
-	pub fn get(&self, unit: u16) -> u16 {
-		*self.map.get(&unit).unwrap_or(&unit)
-	}
-	pub fn into_map(self) -> Map {
-		self.map
-	}
-}
 /// Generate mappings from Unicode 5.1.0 CaseFolding data.
 /// This applies only to UTF-16 code units and has aditional adjustments
 /// on top of the Unicode data. If the UTF-16 code unit does not appear in this
@@ -73,6 +76,7 @@ pub fn gen_mappings() -> Map {
 	try_gen_mappings(CASE_FOLDING, ADJUSTMENTS).expect("Failed to parse CaseFolding.txt data")
 }
 
+/// This parses the unicode data and applies the fixes.
 // TODO: Return a proper error type.
 pub fn try_gen_mappings(data: &str, adjustment: &[(u16, u16)]) -> Option<Map> {
 	let mut map = BTreeMap::new();
