@@ -11,7 +11,7 @@ use std::collections::BTreeMap;
 
 type Map = BTreeMap<u16, u16>;
 
-// The algorithm uses the casefolding data ultimately generated from `gen_mappings`, below.
+// The algorithm uses the case-folding data ultimately generated from `gen_mappings`, below.
 pub fn compare_str(a: &str, b: &str) -> Ordering {
 	let map = Casefold::new();
 	for (a, b) in a.encode_utf16().zip(b.encode_utf16()) {
@@ -77,14 +77,14 @@ const ADJUSTMENTS: &[(u16, u16)] = &[
 ];
 
 /// Generate mappings from Unicode 5.1.0 CaseFolding data.
-/// This applies only to UTF-16 code units and has aditional adjustments
+/// This applies only to UTF-16 code units and has additional adjustments
 /// on top of the Unicode data. If the UTF-16 code unit does not appear in this
 /// mapping then it maps to itself.
 pub fn gen_mappings() -> Map {
 	try_gen_mappings(CASE_FOLDING, ADJUSTMENTS).expect("Failed to parse CaseFolding.txt data")
 }
 
-/// This parses the unicode data and applies the fixes.
+/// This parses the Unicode data and applies the fixes.
 // TODO: Return a proper error type.
 pub fn try_gen_mappings(data: &str, adjustment: &[(u16, u16)]) -> Option<Map> {
 	let mut map = BTreeMap::new();
@@ -96,13 +96,13 @@ pub fn try_gen_mappings(data: &str, adjustment: &[(u16, u16)]) -> Option<Map> {
 		let mut columns = line.split("; ");
 		let (code, status, mapping) = (columns.next()?, columns.next()?, columns.next()?);
 
-		// Simple casefolding and only code points <= U+FFFF.
+		// Simple case-folding and only code points <= U+FFFF.
 		if (status == "C" || status == "S") && code.len() == 4 && mapping.len() == 4 {
 			// NOTE: Windows uses backwards conversions for reasons lost to history.
 			map.insert(from_hex(mapping)?, from_hex(code)?);
 		}
 	}
-	// Apply the adjusts on top of the unicode data.
+	// Apply the adjusts on top of the Unicode data.
 	for (a, b) in adjustment.iter().copied() {
 		map.insert(a, b);
 	}
