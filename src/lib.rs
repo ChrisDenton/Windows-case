@@ -1,13 +1,13 @@
 //! Basic use:
-//! 
+//!
 //! ```rust
 //! use std::cmp::Ordering;
 //!
 //! assert_eq!(wincase::compare_str("Hello", "HeLlo"), Ordering::Equal);
 //! ```
 
-use std::collections::BTreeMap;
 use std::cmp::Ordering;
+use std::collections::BTreeMap;
 
 type Map = BTreeMap<u16, u16>;
 
@@ -26,12 +26,14 @@ pub fn compare_str(a: &str, b: &str) -> Ordering {
 
 /// A wrapper the mapping.
 pub struct Casefold {
-	map: Map
+	map: Map,
 }
 
 impl Casefold {
 	pub fn new() -> Self {
-		Self { map: gen_mappings() }
+		Self {
+			map: gen_mappings(),
+		}
 	}
 	/// Looks up the case mapping.
 	pub fn get(&self, unit: u16) -> u16 {
@@ -39,6 +41,12 @@ impl Casefold {
 	}
 	pub fn into_map(self) -> Map {
 		self.map
+	}
+	pub fn equal(&self, a: u16, b: u16) -> bool {
+		self.get(a) == self.get(b)
+	}
+	pub fn cmp(&self, a: u16, b: u16) -> Ordering {
+		self.get(a).cmp(&self.get(b))
 	}
 }
 
